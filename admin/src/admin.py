@@ -27,7 +27,7 @@ def add_cinema_hall():
 		return 'Sala de cinema nu a putut fi adaugata (parametri invalizi)', 401
 
 	connect_to_db()
-	cursor.execute('add_cinema_hall', [name, number_of_rows, number_of_seats_per_row])
+	cursor.callproc('add_cinema_hall', [name, number_of_rows, number_of_seats_per_row])
 	cursor.close()
 
 	return 'Sala de cinema adaugata cu succes', 200
