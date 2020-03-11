@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  db:
+    image: mysql:5.7
+    deploy:
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "8500:3306"
+    volumes:
+      - ./data:/var/lib/mysql
+      - ./db:/docker-entrypoint-initdb.d/:ro
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: cinema_service
+      MYSQL_USER: admin_cinema_service
+      MYSQL_PASSWORD: supersecret_admin
+
+  admin:
+    image: anamariamicu/cinema-proiect:admin
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+    ports:
+      - '8000:8000'
+    depends_on:
+      - db
+      
+  admin-interface:
+    image: anamariamicu/cinema-proiect:admin-interface
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+    ports:
+      - '8001:8001'
+    depends_on:
+      - db
+      - admin-interface
