@@ -7,8 +7,8 @@ from copy import deepcopy, copy
 admin = Flask(__name__)
 
 config = {
-	'user': 'admin_cinema_service',
-	'password': 'supersecret_admin',
+	'user': 'root',
+	'password': 'rootpass',
 	'host': 'db',
 	'port': '3306',
 	'database': 'cinema_service'

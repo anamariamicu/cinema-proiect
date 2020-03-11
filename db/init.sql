@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS cinema_service;
 CREATE DATABASE cinema_service;
 
 USE cinema_service;
