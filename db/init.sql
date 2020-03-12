@@ -13,6 +13,14 @@ BEGIN
 	COMMIT;
 END //
 
+DROP PROCEDURE IF EXISTS get_cinema_halls //
+CREATE PROCEDURE get_cinema_halls()
+BEGIN
+	SELECT id, name, number_of_rows, number_of_seats_per_row
+	FROM cinema_hall
+	ORDER BY id;
+END //
+
 DELIMITER ;
 
 CREATE TABLE movie(
@@ -32,14 +40,14 @@ CREATE TABLE cinema_hall(
 
 CREATE TABLE screening(
 	id INT AUTO_INCREMENT PRIMARY KEY,
-	movie_id INT FOREIGN KEY REFERNCES movie(id),
-	cinema_hall_id INT FOREIGN KEY REFERNCES cinema_hall(id),
+	movie_id INT FOREIGN KEY REFERENCES movie(id),
+	cinema_hall_id INT FOREIGN KEY REFERENCES cinema_hall(id),
 	start_date DATETIME
 );
 
 CREATE TABLE reservation(
 	id INT AUTO_INCREMENT PRIMARY KEY,
-	screening_id INT FOREIGN KEY REFERNCES screening(id),
+	screening_id INT FOREIGN KEY REFERENCES screening(id),
 	purchased INT,
 	credit_card_info VARCHAR(255)
 );
