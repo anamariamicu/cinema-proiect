@@ -29,6 +29,30 @@ BEGIN
 	COMMIT;
 END //
 
+DROP PROCEDURE IF EXISTS add_movie //
+CREATE PROCEDURE add_movie(IN name_movie VARCHAR(256), IN genre_movie VARCHAR(255), IN duration_minutes_movie INT, IN description_movie VARCHAR(255))
+BEGIN
+	INSERT INTO movie(name, genre, duration_minutes, description)
+	VALUES (name_movie, genre_movie, duration_minutes_movie, description_movie);
+	COMMIT;
+END //
+
+DROP PROCEDURE IF EXISTS get_movies //
+CREATE PROCEDURE get_movies()
+BEGIN
+	SELECT id, name, genre, duration_minutes, description
+	FROM movie
+	ORDER BY id;
+END //
+
+DROP PROCEDURE IF EXISTS remove_movie //
+CREATE PROCEDURE remove_movie(IN id_movie INT)
+BEGIN
+	DELETE FROM movie
+	WHERE id = id_movie;
+	COMMIT;
+END //
+
 DELIMITER ;
 
 CREATE TABLE movie(
@@ -63,4 +87,7 @@ CREATE TABLE reservation(
 	FOREIGN KEY (screening_id) REFERENCES screening(id)
 );
 
-call add_cinema_hall('Sala numarul 1', 10, 8);
+call add_cinema_hall('Londra', 10, 8);
+call add_cinema_hall('Barcelona', 9, 10);
+call add_movie('Miami Bici', 'Comedie', 98, 'Matei Dima si Codin Maticiuc interpreteaza rolurile a doi romani saraci, plecati in Miami ca sa atinga visul american si sa se imbogateasca');
+call add_movie('Jumanji: Nivelul urmator', 'Actiune', 124, 'In Jumanji: Nivelul urmator jucatorii trebuie sa infrunte deserturi aride si munti inzapeziti pentru a scapa cu viata din cel mai periculos joc din lume');

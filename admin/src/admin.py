@@ -56,6 +56,46 @@ def remove_cinema_hall():
 
 	return 'Sala de cinema eliminata cu succes', 200
 
+@admin.route('/movie/add', methods = ['POST'])
+def add_movie():
+	name = request.form.get('name')
+	genre = request.form.get('genre')
+	duration_minutes = request.form.get('duration_minutes')
+	description = request.form.get('description')
+
+	if 	not name or not genre or not duration_minutes or not description:
+		return 'Filmul nu a putut fi adaugat (parametri invalizi)', 401
+
+	connect_to_db()
+	cursor.callproc('add_movie', [name, genre, duration_minutes, description])
+	cursor.close()
+
+	return 'Film adaugat cu succes', 200
+
+@admin.route('/movie')
+def get_movies():
+	connect_to_db()
+	cursor.callproc('get_movies', [])
+
+	movies = []
+
+	for result in cursor.stored_results():
+		movies = result.fetchall()
+
+	cursor.close()
+
+	return json.dumps(movies), 200
+
+@admin.route('/movie/remove', methods = ['POST'])
+def remove_movie():
+	id = request.form.get('id')
+
+	connect_to_db()
+	cursor.callproc('remove_movie', [id])
+	cursor.close()
+
+	return 'Film eliminat cu succes', 200
+
 def connect_to_db():
 	global connection
 	global cursor
