@@ -6,7 +6,7 @@ USE cinema_service;
 DELIMITER //
 
 DROP PROCEDURE IF EXISTS add_cinema_hall //
-CREATE PROCEDURE add_cinema_hall (IN name_hall VARCHAR(256), IN rows INT, IN seats_per_row INT)
+CREATE PROCEDURE add_cinema_hall(IN name_hall VARCHAR(256), IN rows INT, IN seats_per_row INT)
 BEGIN
 	INSERT INTO cinema_hall(name, number_of_rows, number_of_seats_per_row)
 	VALUES (name_hall, rows, seats_per_row);
@@ -19,6 +19,14 @@ BEGIN
 	SELECT id, name, number_of_rows, number_of_seats_per_row
 	FROM cinema_hall
 	ORDER BY id;
+END //
+
+DROP PROCEDURE IF EXISTS remove_cinema_hall //
+CREATE PROCEDURE remove_cinema_hall(IN id_hall INT)
+BEGIN
+	DELETE FROM cinema_hall
+	WHERE id = id_hall;
+	COMMIT;
 END //
 
 DELIMITER ;
@@ -40,16 +48,19 @@ CREATE TABLE cinema_hall(
 
 CREATE TABLE screening(
 	id INT AUTO_INCREMENT PRIMARY KEY,
-	movie_id INT FOREIGN KEY REFERENCES movie(id),
-	cinema_hall_id INT FOREIGN KEY REFERENCES cinema_hall(id),
-	start_date DATETIME
+	movie_id INT,
+	cinema_hall_id INT,
+	start_date DATETIME,
+	FOREIGN KEY (movie_id) REFERENCES movie(id),
+	FOREIGN KEY (cinema_hall_id) REFERENCES cinema_hall(id)
 );
 
 CREATE TABLE reservation(
 	id INT AUTO_INCREMENT PRIMARY KEY,
-	screening_id INT FOREIGN KEY REFERENCES screening(id),
+	screening_id INT,
 	purchased INT,
-	credit_card_info VARCHAR(255)
+	credit_card_info VARCHAR(255),
+	FOREIGN KEY (screening_id) REFERENCES screening(id)
 );
 
-call add_cinema_hall('sala 1', 10, 8);
+call add_cinema_hall('Sala numarul 1', 10, 8);

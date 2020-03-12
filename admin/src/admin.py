@@ -32,19 +32,29 @@ def add_cinema_hall():
 
 	return 'Sala de cinema adaugata cu succes', 200
 
-@admin.route('/cinema_hall', methods = ['GET'])
+@admin.route('/cinema_hall')
 def get_cinema_halls():
 	connect_to_db()
 	cursor.callproc('get_cinema_halls', [])
 
 	cinema_halls = []
 
-	for result in cursor.stored_result():
+	for result in cursor.stored_results():
 		cinema_halls = result.fetchall()
 
 	cursor.close()
 
-	return cinema_halls, 200
+	return json.dumps(cinema_halls), 200
+
+@admin.route('/cinema_hall/remove', methods = ['POST'])
+def remove_cinema_hall():
+	id = request.form.get('id')
+
+	connect_to_db()
+	cursor.callproc('remove_cinema_hall', [id])
+	cursor.close()
+
+	return 'Sala de cinema eliminata cu succes', 200
 
 def connect_to_db():
 	global connection
