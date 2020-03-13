@@ -177,7 +177,8 @@ def print_seats_for_screening(url):
 	# matrice cu loc liber/rezervat/cumparat
 	result_matrix = response.json()
 
-	print(result_matrix)
+	for r in result_matrix:
+		print(r)
 
 def print_reservations(url):
 	url = url + '/screening/reservations'
@@ -198,7 +199,7 @@ def print_reservations(url):
 		# reservation[1] - lista cu perechi de tipul (nr_rand, nr_loc)
 		seats = ''
 		for seat in reservation[1]:
-			seats = seats + ' R' + seat[0] + 'L' + seat[1]
+			seats = seats + ' R' + str(seat[0]) + 'L' + str(seat[1])
 		print('Locuri:' + seats)
 
 		if reservation[2]:

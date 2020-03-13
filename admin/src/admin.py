@@ -51,6 +51,18 @@ def remove_cinema_hall():
 	id = request.form.get('id')
 
 	connect_to_db()
+	cursor.callproc('check_cinema_hall', [id])
+
+	number_of_screenings = None
+	for result in cursor.stored_results():
+		number_of_screenings = result.fetchone()
+
+	cursor.close()
+
+	if number_of_screenings != 0:
+		return 'Sala de cinema nu poate fi eliminata (exista proiectii de film programate)', 402
+
+	connect_to_db()
 	cursor.callproc('remove_cinema_hall', [id])
 	cursor.close()
 
@@ -91,10 +103,139 @@ def remove_movie():
 	id = request.form.get('id')
 
 	connect_to_db()
+	cursor.callproc('check_movie', [id])
+
+	number_of_screenings = None
+	for result in cursor.stored_results():
+		number_of_screenings = result.fetchone()
+
+	cursor.close()
+
+	if number_of_screenings != 0:
+		return 'Filmul nu poate fi eliminat (exista proiectii de film programate)', 402
+		
+	connect_to_db()
 	cursor.callproc('remove_movie', [id])
 	cursor.close()
 
 	return 'Film eliminat cu succes', 200
+
+@admin.route('/screening/add', methods = ['POST'])
+def add_screening():
+	movie_id = request.form.get('movie_id')
+	cinema_hall_id = request.form.get('cinema_hall_id')
+	start_date = request.form.get('start_date')
+
+	if 	not movie_id or not cinema_hall_id or not start_date:
+		return 'Proiectia filmului nu a putut fi adaugata (parametri invalizi)', 401
+
+	connect_to_db()
+	cursor.callproc('add_screening', [movie_id, cinema_hall_id, start_date])
+	cursor.close()
+
+	return 'Proiectia filmului adaugata cu succes', 200
+
+@admin.route('/screening')
+def get_screenings():
+	movie_id = request.args.get('movie_id')
+
+	connect_to_db()
+	cursor.callproc('get_screenings', [movie_id])
+
+	screenings = []
+
+	for result in cursor.stored_results():
+		screenings = result.fetchall()
+
+	cursor.close()
+
+	return json.dumps(screenings), 200
+
+@admin.route('/screening/remove', methods = ['POST'])
+def remove_screening():
+	id = request.form.get('id')
+
+	connect_to_db()
+	cursor.callproc('check_screening', [id])
+
+	number_of_reservations = None
+	for result in cursor.stored_results():
+		number_of_reservations = result.fetchone()
+
+	cursor.close()
+
+	if number_of_reservations != 0:
+		return 'Proiectia filmului nu poate fi eliminat (exista bilete rezervate/cumparate)', 402
+		
+	connect_to_db()
+	cursor.callproc('remove_screening', [id])
+	cursor.close()
+
+	return 'Proiectia filmului eliminata cu succes', 200
+
+@admin.route('/screening/cinema_hall')
+def get_seats_for_screening():
+	screening_id = request.args.get('screening_id')
+
+	connect_to_db()
+	cursor.callproc('get_seats_for_screening', [screening_id])
+
+	seats_db = []
+
+	for result in cursor.stored_results():
+		seats_db = result.fetchall()
+
+	cursor.close()
+
+	connect_to_db()
+	cursor.callproc('get_number_of_seats_for_screening', [screening_id])
+
+	number_of_seats_db = None
+
+	for result in cursor.stored_results():
+		number_of_seats_db = result.fetchone()
+
+	cursor.close()
+
+	number_of_rows = number_of_seats_db[0]
+	number_of_seats_per_row = number_of_seats_db[1]
+
+	seats = [['L' for s in range(number_of_seats_per_row)] for r in range(number_of_rows)]
+
+	for seat_db in seats_db:
+		(row, number, purchased) = seat_db
+
+		if purchased:
+			seats[row - 1][number - 1] = 'C'
+		else:
+			seats[row - 1][number - 1] = 'R'
+
+	return json.dumps(seats), 200
+
+@admin.route('/screening/reservations')
+def get_reservations():
+	screening_id = request.args.get('screening_id')
+
+	connect_to_db()
+	cursor.callproc('get_reservations', [screening_id])
+
+	reservations_db = []
+	reservations = {}
+
+	for result in cursor.stored_results():
+		reservations_db = result.fetchall()
+
+	cursor.close()
+
+	for r in reservations_db:
+		(id, row, seat_number, purchased, credit_card_info) = r
+
+		if id in reservations:
+			reservations[id][1].append((row, seat_number))
+		else:
+			reservations[id] = (id, [(row, seat_number)], purchased, credit_card_info)
+
+	return json.dumps(list(reservations.values())), 200
 
 def connect_to_db():
 	global connection
