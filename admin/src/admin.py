@@ -2,7 +2,6 @@ from flask import Flask, request, Response
 import mysql.connector
 import os
 import json
-from copy import deepcopy, copy
 
 admin = Flask(__name__)
 
@@ -55,7 +54,7 @@ def remove_cinema_hall():
 
 	number_of_screenings = None
 	for result in cursor.stored_results():
-		number_of_screenings = result.fetchone()
+		number_of_screenings = result.fetchone()[0]
 
 	cursor.close()
 
@@ -107,7 +106,7 @@ def remove_movie():
 
 	number_of_screenings = None
 	for result in cursor.stored_results():
-		number_of_screenings = result.fetchone()
+		number_of_screenings = result.fetchone()[0]
 
 	cursor.close()
 
@@ -160,7 +159,7 @@ def remove_screening():
 
 	number_of_reservations = None
 	for result in cursor.stored_results():
-		number_of_reservations = result.fetchone()
+		number_of_reservations = result.fetchone()[0]
 
 	cursor.close()
 

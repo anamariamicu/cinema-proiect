@@ -42,13 +42,13 @@ def print_screenings_for_movie(url):
 
 	for screening in screenings:
 		print('')
-		print('ID: ' + str(screening[0]))
+		print('ID proiectie: ' + str(screening[0]))
 		print('Data: ' + str(screening[2]))
 
 def print_screenings_for_day(url):
-	url = url + '/screening/day'
+	url = url + '/screening/date'
 
-	print('Introduceti data sub urmatorul format YYYY-MM-DD HH:MM:SS:')
+	print('Introduceti data sub urmatorul format YYYY-MM-DD:')
 
 	date = input()
 	params = {
@@ -114,8 +114,9 @@ def get_reservation(url):
 		if response.status_code == 401:
 			print('Rezervare esuata (ID-ul proiectiei este invalid)')
 		elif response.status_code == 402:
-			print('Rezervare esuata (unul dintre locuri este invalid sau \
-				este deja rezervat/cumaprat)')
+			print('Rezervare esuata (unul dintre locuri este invalid)')
+		elif response.status_code == 403:
+			print('Rezervare esuata (unul dintre locuri este rezervat/cumparat)')
 	else:
 		print('Rezervare realizata cu succes. ID-ul rezervarii: ' + response.text)
 
@@ -130,6 +131,11 @@ def print_reservation(url):
 	}
 
 	response = requests.get(url = url, params = params)
+
+	if not response:
+		print("ID-ul este invalid")
+		return
+
 	reservation = response.json()
 
 	print('ID rezervare: ' + str(reservation[0]))
@@ -138,13 +144,13 @@ def print_reservation(url):
 	print('Data: ' + str(reservation[3]))
 	print('Nume sala de cinema: ' + reservation[4])
 
-	# reservation[5] - lista cu perechi de tipul (nr_rand, nr_loc)
+	# reservation[6] - lista cu perechi de tipul (nr_rand, nr_loc)
 	seats = ''
 	for seat in reservation[5]:
 		seats = seats + ' R' + str(seat[0]) + 'L' + str(seat[1])
 	print('Locuri:' + seats)
 
-	if reservation[6]:
+	if reservation[5] == 1:
 		print('Este cumparata: Da')
 	else:
 		print('Este cumparata: Nu')

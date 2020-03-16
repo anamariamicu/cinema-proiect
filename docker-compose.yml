@@ -43,6 +43,19 @@ services:
       - '8003:8003'
     links:
       - db
+      - server
+    depends_on:
+      - db
+      - server
+    stdin_open: true
+    tty: true
+
+  server:
+    build: ./server
+    links:
+      - db:mysql
+    ports:
+      - '8002:8002'
     depends_on:
       - db
     stdin_open: true

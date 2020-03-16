@@ -86,6 +86,38 @@ BEGIN
 	END REPEAT;
 END //
 
+DROP TRIGGER IF EXISTS remove_reserved_seats //
+CREATE TRIGGER remove_reserved_seats
+    BEFORE DELETE ON reservation
+    FOR EACH ROW 
+BEGIN
+	DELETE FROM reserved_seat
+	WHERE reservation_id = old.id;
+END //
+
+DROP PROCEDURE IF EXISTS check_seat //
+CREATE PROCEDURE check_seat(IN id_screening INT, IN row_number INT, IN seat_number INT)
+BEGIN
+	SELECT COUNT(*)
+	FROM seat s, screening sc, cinema_hall c
+	WHERE sc.id = id_screening AND
+		  c.id = sc.cinema_hall_id AND
+		  s.cinema_hall_id = c.id AND
+		  s.row = row_number AND s.number_seat = seat_number;
+END //
+
+DROP PROCEDURE IF EXISTS check_seat_reserved //
+CREATE PROCEDURE check_seat_reserved(IN id_screening INT, IN row_number INT, IN seat_number INT)
+BEGIN
+	SELECT COUNT(*)
+	FROM seat s, screening sc, reservation r, reserved_seat rs
+	WHERE sc.id = id_screening AND
+		  r.screening_id = sc.id AND
+		  rs.reservation_id = r.id AND
+		  rs.seat_id = s.id AND
+		  s.row = row_number AND s.number_seat = seat_number;
+END //
+
 DROP PROCEDURE IF EXISTS get_cinema_halls //
 CREATE PROCEDURE get_cinema_halls()
 BEGIN
@@ -176,12 +208,37 @@ BEGIN
 	ORDER BY id;
 END //
 
+DROP PROCEDURE IF EXISTS get_screenings_for_date //
+CREATE PROCEDURE get_screenings_for_date(IN d VARCHAR(40))
+BEGIN
+	SELECT s.id, concat(left(s.start_date, 10), ' ', right(s.start_date, 8)), m.name, m.genre, m.duration_minutes, m.description
+	FROM screening s, movie m
+	WHERE STRCMP(left(s.start_date, 10), d) = 0 AND s.movie_id = m.id
+	ORDER BY s.start_date;
+END //
+
 DROP PROCEDURE IF EXISTS check_screening //
 CREATE PROCEDURE check_screening(IN id_screening INT)
 BEGIN
 	SELECT COUNT(*)
+	FROM screening
+	WHERE id = id_screening;
+END //
+
+DROP PROCEDURE IF EXISTS check_reservation //
+CREATE PROCEDURE check_reservation(IN id_reservation INT)
+BEGIN
+	SELECT COUNT(*)
 	FROM reservation
-	WHERE screening_id = id_screening;
+	WHERE id = id_reservation;
+END //
+
+DROP PROCEDURE IF EXISTS check_reservation_purchased //
+CREATE PROCEDURE check_reservation_purchased(IN id_reservation INT)
+BEGIN
+	SELECT purchased
+	FROM reservation
+	WHERE id = id_reservation;
 END //
 
 DROP PROCEDURE IF EXISTS remove_screening //
@@ -189,6 +246,14 @@ CREATE PROCEDURE remove_screening(IN id_screening INT)
 BEGIN
 	DELETE FROM screening
 	WHERE id = id_screening;
+	COMMIT;
+END //
+
+DROP PROCEDURE IF EXISTS remove_reservation //
+CREATE PROCEDURE remove_reservation(IN id_reservation INT)
+BEGIN
+	DELETE FROM reservation
+	WHERE id = id_reservation;
 	COMMIT;
 END //
 
@@ -216,6 +281,63 @@ BEGIN
 	FROM reservation r, seat s, reserved_seat rs
 	WHERE r.screening_id = id_screening AND rs.reservation_id = r.id AND rs.seat_id = s.id
 	ORDER BY s.row, s.number_seat;
+END //
+
+DROP PROCEDURE IF EXISTS add_reservation //
+CREATE PROCEDURE add_reservation(IN id_screening INT)
+BEGIN
+	INSERT INTO reservation (screening_id, purchased, credit_card_info)
+	VALUES (id_screening, 0, NULL);
+	COMMIT;
+
+	SELECT MAX(id)
+	FROM reservation;
+END //
+
+DROP PROCEDURE IF EXISTS add_reserved_seat //
+CREATE PROCEDURE add_reserved_seat(IN id_screening INT, IN id_reservation INT, IN row_number INT, IN seat_number INT)
+BEGIN
+	DECLARE id_seat INT;
+
+	SELECT s.id INTO id_seat
+	FROM seat s, screening sc
+	WHERE sc.id = id_screening AND
+		  sc.cinema_hall_id = s.cinema_hall_id AND
+		  s.row = row_number AND
+		  s.number_seat = seat_number;
+
+	INSERT INTO reserved_seat (seat_id, reservation_id)
+	VALUES (id_seat, id_reservation);
+	COMMIT;
+END //
+
+DROP PROCEDURE IF EXISTS get_reservation_details //
+CREATE PROCEDURE get_reservation_details(IN id_reservation INT)
+BEGIN
+	SELECT r.id, m.id, m.name, concat(left(s.start_date, 10), ' ', right(s.start_date, 8)), ch.name, r.purchased
+	FROM reservation r, screening s, movie m, cinema_hall ch
+	WHERE r.id = id_reservation AND
+		  r.screening_id = s.id AND
+		  s.movie_id = m.id AND
+		  s.cinema_hall_id = ch.id;
+END //
+
+DROP PROCEDURE IF EXISTS get_seats_for_reservation //
+CREATE PROCEDURE get_seats_for_reservation(IN id_reservation INT)
+BEGIN
+	SELECT s.row, s.number_seat
+	FROM reserved_seat rs, seat s
+	WHERE rs.reservation_id = id_reservation AND
+		  rs.seat_id = s.id;
+END //
+
+DROP PROCEDURE IF EXISTS buy_reservation //
+CREATE PROCEDURE buy_reservation(IN id_reservation INT, IN credit_card_info_reservation VARCHAR(255))
+BEGIN
+	UPDATE reservation
+	SET purchased = 1, credit_card_info = credit_card_info_reservation
+	WHERE id = id_reservation;
+	COMMIT;
 END //
 
 DELIMITER ;

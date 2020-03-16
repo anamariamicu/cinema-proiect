@@ -202,7 +202,7 @@ def print_reservations(url):
 			seats = seats + ' R' + str(seat[0]) + 'L' + str(seat[1])
 		print('Locuri:' + seats)
 
-		if reservation[2]:
+		if reservation[2] == 1:
 			print('Este cumparata: Da')
 			print('Informatii card de credit: ' + reservation[3])
 		else:
