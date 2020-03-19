@@ -34,6 +34,7 @@ CREATE TABLE reservation(
 	screening_id INT,
 	purchased INT,
 	credit_card_info VARCHAR(255),
+	time_of_reservation TIMESTAMP,
 	FOREIGN KEY (screening_id) REFERENCES screening(id)
 );
 
@@ -134,6 +135,14 @@ BEGIN
 	WHERE cinema_hall_id = id_hall;
 END //
 
+DROP PROCEDURE IF EXISTS check_cinema_hall_exists //
+CREATE PROCEDURE check_cinema_hall_exists(IN id_hall INT)
+BEGIN
+	SELECT COUNT(*)
+	FROM cinema_hall
+	WHERE id = id_hall;
+END //
+
 DROP PROCEDURE IF EXISTS remove_cinema_hall //
 CREATE PROCEDURE remove_cinema_hall(IN id_hall INT)
 BEGIN
@@ -173,6 +182,14 @@ BEGIN
 	SELECT COUNT(*)
 	FROM screening
 	WHERE movie_id = id_movie;
+END //
+
+DROP PROCEDURE IF EXISTS check_movie_exists //
+CREATE PROCEDURE check_movie_exists(IN id_movie INT)
+BEGIN
+	SELECT COUNT(*)
+	FROM movie
+	WHERE id = id_movie;
 END //
 
 DROP PROCEDURE IF EXISTS remove_cinema_hall //
@@ -217,12 +234,20 @@ BEGIN
 	ORDER BY s.start_date;
 END //
 
-DROP PROCEDURE IF EXISTS check_screening //
-CREATE PROCEDURE check_screening(IN id_screening INT)
+DROP PROCEDURE IF EXISTS check_screening_exists //
+CREATE PROCEDURE check_screening_exists(IN id_screening INT)
 BEGIN
 	SELECT COUNT(*)
 	FROM screening
 	WHERE id = id_screening;
+END //
+
+DROP PROCEDURE IF EXISTS check_screening //
+CREATE PROCEDURE check_screening(IN id_screening INT)
+BEGIN
+	SELECT COUNT(*)
+	FROM reservation
+	WHERE screening_id = id_screening;
 END //
 
 DROP PROCEDURE IF EXISTS check_reservation //
@@ -286,8 +311,8 @@ END //
 DROP PROCEDURE IF EXISTS add_reservation //
 CREATE PROCEDURE add_reservation(IN id_screening INT)
 BEGIN
-	INSERT INTO reservation (screening_id, purchased, credit_card_info)
-	VALUES (id_screening, 0, NULL);
+	INSERT INTO reservation (screening_id, purchased, credit_card_info, time_of_reservation)
+	VALUES (id_screening, 0, NULL, NOW());
 	COMMIT;
 
 	SELECT MAX(id)
@@ -344,7 +369,45 @@ DELIMITER ;
 
 call add_cinema_hall('Londra', 10, 8);
 call add_cinema_hall('Barcelona', 9, 10);
+
 call add_movie('Miami Bici', 'Comedie', 98, 'Matei Dima si Codin Maticiuc interpreteaza rolurile a doi romani saraci, plecati in Miami ca sa atinga visul american si sa se imbogateasca');
 call add_movie('Jumanji: Nivelul urmator', 'Actiune', 124, 'In Jumanji: Nivelul urmator jucatorii trebuie sa infrunte deserturi aride si munti inzapeziti pentru a scapa cu viata din cel mai periculos joc din lume');
-call add_screening(1, 1, '2020-03-25 18:00:00');
-call add_screening(2, 2, '2020-03-25 18:00:00');
+
+call add_screening(1, 1, '2020-03-17 09:00:00');
+call add_screening(2, 2, '2020-03-17 18:00:00');
+call add_screening(1, 1, '2020-03-17 12:00:00');
+call add_screening(1, 1, '2020-03-17 16:00:00');
+call add_screening(1, 1, '2020-03-17 19:00:00');
+call add_screening(1, 1, '2020-03-17 21:50:00');
+call add_screening(2, 2, '2020-03-17 18:00:00');
+call add_screening(2, 2, '2020-03-17 21:50:00');
+
+call add_screening(1, 1, '2020-03-18 09:00:00');
+call add_screening(2, 2, '2020-03-18 18:00:00');
+call add_screening(1, 1, '2020-03-18 19:00:00');
+call add_screening(1, 1, '2020-03-18 21:50:00');
+call add_screening(2, 2, '2020-03-18 19:00:00');
+
+call add_reservation(1);
+call add_reservation(1);
+call add_reservation(2);
+INSERT INTO reservation (screening_id, purchased, credit_card_info, time_of_reservation)
+VALUES (1, 0, NULL, DATE_SUB(DATE(NOW()), INTERVAL 2 DAY));
+COMMIT;
+INSERT INTO reservation (screening_id, purchased, credit_card_info, time_of_reservation)
+VALUES (1, 0, NULL, DATE_SUB(DATE(NOW()), INTERVAL 2 DAY));
+COMMIT;
+INSERT INTO reservation (screening_id, purchased, credit_card_info, time_of_reservation)
+VALUES (1, 0, NULL, DATE_SUB(DATE(NOW()), INTERVAL 1 DAY));
+COMMIT;
+
+
+call add_reserved_seat(1, 1, 2, 1);
+call add_reserved_seat(1, 1, 2, 2);
+call add_reserved_seat(1, 1, 2, 3);
+call add_reserved_seat(1, 2, 3, 3);
+call add_reserved_seat(1, 2, 3, 4);
+call add_reserved_seat(2, 3, 2, 4);
+call add_reserved_seat(2, 3, 2, 5);
+
+call buy_reservation(1, "INFO");

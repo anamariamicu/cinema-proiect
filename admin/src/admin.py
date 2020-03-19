@@ -50,6 +50,18 @@ def remove_cinema_hall():
 	id = request.form.get('id')
 
 	connect_to_db()
+	cursor.callproc('check_cinema_hall_exists', [id])
+
+	number_of_cinema_halls = None
+	for result in cursor.stored_results():
+		number_of_cinema_halls = result.fetchone()[0]
+
+	cursor.close()
+
+	if number_of_cinema_halls == 0:
+		return 'Sala de cinema nu poate fi eliminata (ID invalid)', 401
+
+	connect_to_db()
 	cursor.callproc('check_cinema_hall', [id])
 
 	number_of_screenings = None
@@ -101,6 +113,18 @@ def get_movies():
 def remove_movie():
 	id = request.form.get('id')
 
+	connect_to_db()
+	cursor.callproc('check_movie_exists', [id])
+
+	number_of_movies = None
+	for result in cursor.stored_results():
+		number_of_movies = result.fetchone()[0]
+
+	cursor.close()
+
+	if number_of_movies == 0:
+		return 'Filmul nu poate fi eliminat (ID invalid)', 401
+		
 	connect_to_db()
 	cursor.callproc('check_movie', [id])
 
@@ -155,6 +179,18 @@ def remove_screening():
 	id = request.form.get('id')
 
 	connect_to_db()
+	cursor.callproc('check_screening_exists', [id])
+
+	number_of_screenings = None
+	for result in cursor.stored_results():
+		number_of_screenings = result.fetchone()[0]
+
+	cursor.close()
+
+	if number_of_screenings == 0:
+		return 'Proiectia nu poate fi eliminata (ID invalid)', 401
+
+	connect_to_db()
 	cursor.callproc('check_screening', [id])
 
 	number_of_reservations = None
@@ -175,6 +211,18 @@ def remove_screening():
 @admin.route('/screening/cinema_hall')
 def get_seats_for_screening():
 	screening_id = request.args.get('screening_id')
+
+	connect_to_db()
+	cursor.callproc('check_screening_exists', [screening_id])
+
+	number_of_screenings = None
+	for result in cursor.stored_results():
+		number_of_screenings = result.fetchone()[0]
+
+	cursor.close()
+
+	if number_of_screenings == 0:
+		return 'ID-ul proiectiei filmului este invalid', 401
 
 	connect_to_db()
 	cursor.callproc('get_seats_for_screening', [screening_id])
@@ -214,6 +262,18 @@ def get_seats_for_screening():
 @admin.route('/screening/reservations')
 def get_reservations():
 	screening_id = request.args.get('screening_id')
+
+	connect_to_db()
+	cursor.callproc('check_screening_exists', [screening_id])
+
+	number_of_screenings = None
+	for result in cursor.stored_results():
+		number_of_screenings = result.fetchone()[0]
+
+	cursor.close()
+
+	if number_of_screenings == 0:
+		return 'ID-ul proiectiei filmului este invalid', 401
 
 	connect_to_db()
 	cursor.callproc('get_reservations', [screening_id])

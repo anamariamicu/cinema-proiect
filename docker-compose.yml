@@ -10,6 +10,10 @@ services:
       - ./db:/docker-entrypoint-initdb.d/:ro
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
+    networks:
+      - serverdb
+      - admindb
+      - grafanadb
     stdin_open: true
     tty: true
 
@@ -21,6 +25,9 @@ services:
       - '8000:8000'
     depends_on:
       - db
+    networks:
+      - admininterface
+      - admindb
     stdin_open: true
     tty: true
       
@@ -34,6 +41,8 @@ services:
     depends_on:
       - db
       - admin
+    networks:
+      - admininterface
     stdin_open: true
     tty: true
 
@@ -47,6 +56,8 @@ services:
     depends_on:
       - db
       - server
+    networks:
+      - serverclient
     stdin_open: true
     tty: true
 
@@ -58,5 +69,32 @@ services:
       - '8002:8002'
     depends_on:
       - db
+    networks:
+      - serverdb
+      - serverclient
     stdin_open: true
     tty: true
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./grafana:/var/lib/grafana
+    user: "0"
+    links:
+      - db
+    depends_on:
+      - db
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=adminpass
+    networks:
+      - grafanadb
+
+networks:
+  serverdb:
+  serverclient:
+  admininterface:
+  admindb:
+  grafanadb:

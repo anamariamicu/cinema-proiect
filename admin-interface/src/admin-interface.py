@@ -174,6 +174,11 @@ def print_seats_for_screening(url):
 	}
 
 	response = requests.get(url = url, params = params)
+
+	if response.status_code != 200:
+		print(response.text)
+		return
+
 	# matrice cu loc liber/rezervat/cumparat
 	result_matrix = response.json()
 
@@ -191,6 +196,11 @@ def print_reservations(url):
 	}
 
 	response = requests.get(url = url, params = params)
+
+	if response.status_code != 200:
+		print(response.text)
+		return
+
 	reservations = response.json()
 
 	for reservation in reservations:

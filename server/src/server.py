@@ -68,6 +68,18 @@ def get_seats_for_screening():
 	screening_id = request.args.get('screening_id')
 
 	connect_to_db()
+	cursor.callproc('check_screening_exists', [screening_id])
+
+	number_of_screenings = None
+	for result in cursor.stored_results():
+		number_of_screenings = result.fetchone()[0]
+
+	cursor.close()
+
+	if number_of_screenings == 0:
+		return 'ID-ul proiectiei filmului este invalid', 401
+
+	connect_to_db()
 	cursor.callproc('get_seats_for_screening', [screening_id])
 
 	seats_db = []
@@ -201,6 +213,8 @@ def get_reservation_details():
 	reservation[5] = deepcopy(seats)
 	reservation.append(purchased)
 
+	print(reservation)
+
 	return json.dumps(reservation), 200
 
 @server.route('/reservation/remove', methods = ['POST'])
@@ -262,9 +276,6 @@ def buy_reservation():
 		purchased = result.fetchone()[0]
 
 	cursor.close()
-
-	print("AICI")
-	print(purchased)
 
 	if purchased == 1:
 		return '', 402

@@ -78,6 +78,11 @@ def print_cinema_hall(url):
 	}
 
 	response = requests.get(url = url, params = params)
+	
+	if response.status_code != 200:
+		print(response.text)
+		return
+
 	# matrice cu loc liber/rezervat/cumparat
 	result_matrix = response.json()
 
@@ -150,7 +155,7 @@ def print_reservation(url):
 		seats = seats + ' R' + str(seat[0]) + 'L' + str(seat[1])
 	print('Locuri:' + seats)
 
-	if reservation[5] == 1:
+	if reservation[6] == 1:
 		print('Este cumparata: Da')
 	else:
 		print('Este cumparata: Nu')
